@@ -6,6 +6,7 @@ library(sf)
 library(leaflet)
 library(leaflet.extras)
 library(RColorBrewer)
+library(mapview)
 
 ## Set options, remove scientific notation, other options
 options(scipen = 999, stringsAsFactors = FALSE)
@@ -68,20 +69,15 @@ split_df_forge <- split(forge_sf, forge_sf$Legend_Specialization)
 
 # ----- Create Map -----
 
-# map_layer_names <-
-#   forge_sf %>%
-#   st_drop_geometry() %>%
-#   pull("Legend_Specialization") %>%
-#   unique() %>%
-#   sort
+map_layer_names <- names(split_df_forge)
 
 
 ## Function that maps a distinct color to each Specialization
 pal <- colorFactor(palette = 'Set1',
-                   domain = names(split_df_forge))
+                   domain = map_layer_names)
 
-## Create the popup text (with HTML styling) for the map
-generate_popup <- function(row) {
+## Function to create the popup text (with HTML styling) for the map
+generate_popup_text <- function(row) {
   popup_text <- paste0(
     "<b>Company Name: </b>",
     row$company_name,
@@ -129,7 +125,7 @@ names(split_df_forge) %>%
         stroke = TRUE,
         data = split_df_forge[[df]],
         label =  ~ as.character(company_name),
-        popup = ~ generate_popup(split_df_forge[[df]]),
+        popup = ~ generate_popup_text(split_df_forge[[df]]),
         group = df,
         color = pal(split_df_forge[[df]]$Legend_Specialization),
         labelOptions = labelOptions(noHide = F,
@@ -140,15 +136,15 @@ names(split_df_forge) %>%
 ## Finally, with all of our layers added, include layer control, legend, etc.
 l <-
   l %>%
-  addLayersControl(overlayGroups = names(split_df_forge),
+  addLayersControl(overlayGroups = map_layer_names,
                    options = layersControlOptions(collapsed = FALSE)) %>%
   addLegend("topright",
             pal,
-            values = names(split_df_forge),
+            values = map_layer_names,
             title = "Specialization") %>%
   # Search box for companies
   addSearchFeatures(
-    targetGroups = names(split_df_forge),
+    targetGroups = map_layer_names,
     options = searchFeaturesOptions(
       position = "topleft",
       propertyLoc = "company_name",
