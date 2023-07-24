@@ -7,6 +7,7 @@ library(leaflet)
 library(leaflet.extras)
 library(RColorBrewer)
 library(mapview)
+library(leaflet.providers)
 
 ## Set options, remove scientific notation, other options
 options(scipen = 999, stringsAsFactors = FALSE)
@@ -78,7 +79,7 @@ pal <- colorFactor(palette = 'Set1',
 
 ## Function to create the popup text (with HTML styling) for the map
 generate_popup_text <- function(row) {
-  popup_text <- paste0(
+    popup_text <- paste0(
     "<b>Company Name: </b>",
     row$company_name,
     "<br> <b>DUNS #: </b>",
@@ -115,23 +116,27 @@ generate_popup_text <- function(row) {
 ## Define the Leaflet map
 l <-
   leaflet() %>%
-  addTiles()
+  addProviderTiles(providers$CartoDB.Positron)
 
-## Add a circle to the leaflet map defined above, iteratively for each specialization
+## Add a circle to the leaflet map defined above  for each specialization; inspiration for this strategy: https://rstudio.github.io/leaflet/showhide.html
 names(split_df_forge) %>%
   purrr::walk(function(df) {
+
     l <<- l %>%
       addCircles(
-        stroke = TRUE,
         data = split_df_forge[[df]],
-        label =  ~ as.character(company_name),
+        label =  ~ as.character(physical_city),
         popup = ~ generate_popup_text(split_df_forge[[df]]),
         group = df,
-        color = pal(split_df_forge[[df]]$Legend_Specialization),
+        radius = 3,
+        stroke = TRUE,
+        color = ~ pal(Legend_Specialization),
+        fillColor = ~ pal(split_df_forge[[df]]$Legend_Specialization),
         labelOptions = labelOptions(noHide = F,
                                     direction = 'auto')
       )
   })
+
 
 ## Finally, with all of our layers added, include layer control, legend, etc.
 l <-
