@@ -128,7 +128,7 @@ names(split_df_forge) %>%
         label =  ~ as.character(physical_city),
         popup = ~ generate_popup_text(split_df_forge[[df]]),
         group = df,
-        radius = 3,
+        radius = 5,
         stroke = TRUE,
         color = ~ pal(Legend_Specialization),
         fillColor = ~ pal(split_df_forge[[df]]$Legend_Specialization),
