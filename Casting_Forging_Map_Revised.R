@@ -80,7 +80,26 @@ pal <- colorFactor(palette = 'Set1',
                    domain = map_layer_names)
 
 rr <- tags$div(
+title_html <- tags$div(
   HTML('<h3> Establishments in Casting, Forging, and Related Sectors in the ILDMC Region </h3>')
+)
+
+tag.map.title <- tags$style(HTML("
+  .leaflet-control.map-title {
+    transform: translate(-50%,20%);
+    position: fixed !important;
+    left: 50%;
+    margin-top: -5px;
+    text-align: center;
+    padding-left: 10px;
+    padding-right: 10px;
+    background: rgba(255,255,255,0.75);
+    font-size: 20px;
+  }
+"))
+
+title <- tags$div(
+  tag.map.title, HTML("Establishments in Casting, Forging, and Related Sectors in the ILDMC Region")
 )
 
 
@@ -124,6 +143,7 @@ generate_popup_text <- function(row) {
 ## Define the Leaflet map
 l <-
   leaflet() %>%
+  addControl(title, position = "topleft", className="map-title") %>%
   addProviderTiles(providers$CartoDB.Positron)
   addProviderTiles(providers$CartoDB.Positron) %>%
   addControl(rr, position = "topleft")
