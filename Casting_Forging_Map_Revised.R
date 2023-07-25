@@ -144,6 +144,8 @@ map_layers <- function() {
     addControl(title, position = "topleft", className = "map-title") %>%
     addProviderTiles(providers$CartoDB.Positron)
 
+  opacity <- 0.8
+
   #loop through all groups and add one layer one at a time
   for (i in map_layer_names) {
 
@@ -157,7 +159,7 @@ map_layers <- function() {
         popup = ~ generate_popup_text(layer_data),
         fillColor = ~ pal(Legend_Specialization),
         color = "black",
-        fillOpacity = 0.8,
+        fillOpacity = opacity,
         weight = 1,
         stroke = TRUE,
         radius = 5
@@ -174,7 +176,8 @@ map_layers <- function() {
     addLegend("topright",
               pal,
               values = map_layer_names,
-              title = "Specialization") %>%
+              title = "Specialization",
+              opacity = opacity) %>%
     leaflet.extras::addSearchOSM()
 
 }
