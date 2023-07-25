@@ -128,8 +128,9 @@ names(split_df_forge) %>%
         label =  ~ as.character(physical_city),
         popup = ~ generate_popup_text(split_df_forge[[df]]),
         group = df,
-        radius = 5,
         stroke = TRUE,
+        weight = 5,
+        fillOpacity = 1,
         color = ~ pal(Legend_Specialization),
         fillColor = ~ pal(split_df_forge[[df]]$Legend_Specialization),
         labelOptions = labelOptions(noHide = F,
@@ -141,8 +142,6 @@ names(split_df_forge) %>%
 ## Finally, with all of our layers added, include layer control, legend, etc.
 l <-
   l %>%
-  addLayersControl(overlayGroups = map_layer_names,
-                   options = layersControlOptions(collapsed = FALSE)) %>%
   addLegend("topright",
             pal,
             values = map_layer_names,
@@ -151,7 +150,6 @@ l <-
   addSearchFeatures(
     targetGroups = map_layer_names,
     options = searchFeaturesOptions(
-      position = "topleft",
       propertyLoc = "company_name",
       zoom = 15,
       openPopup = TRUE,
@@ -160,7 +158,10 @@ l <-
     )
   ) %>%
   # Search box for address
-  leaflet.extras::addSearchOSM()
+  leaflet.extras::addSearchOSM() %>%
+  addLayersControl(overlayGroups = map_layer_names,
+                   options = layersControlOptions(collapsed = FALSE),
+                   position = "topleft")
 
 
 # ----- Export map and data -----
