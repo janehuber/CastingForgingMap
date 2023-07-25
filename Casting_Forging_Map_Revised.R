@@ -80,6 +80,7 @@ pal <- colorFactor(palette = 'Set1',
 ## Function to create the popup text (with HTML styling) for the map
 generate_popup_text <- function(row) {
     popup_text <- paste0(
+      "<h3>", row$region, "</h3>",
     "<b>Company Name: </b>",
     row$company_name,
     "<br> <b>DUNS #: </b>",
