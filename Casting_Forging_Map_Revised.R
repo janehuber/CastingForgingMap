@@ -159,7 +159,7 @@ names(split_df_forge) %>%
         popup = ~ generate_popup_text(split_df_forge[[df]]),
         group = df,
         stroke = TRUE,
-        weight = 5,
+        weight = 8,
         fillOpacity = 1,
         color = ~ pal(Legend_Specialization),
         fillColor = ~ pal(split_df_forge[[df]]$Legend_Specialization),
