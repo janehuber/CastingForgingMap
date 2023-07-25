@@ -47,9 +47,10 @@ forge_sf <- st_as_sf(map_data,
                                 "latitude"),
                      crs = 4326)
 
-## Fix CRS
+## Fix CRS & Ensure that Legend_Specialization is a factor (this is important because otherwise we will be unable to manipulate this variable in mapping)
 forge_sf <- st_transform(forge_sf,
-                         crs = 4326)
+                         crs = 4326) %>%
+  mutate(Legend_Specialization = factor(Legend_Specialization))
 
 ## Encoding
 Encoding(x = forge_sf$certification) <- "UTF-8"
@@ -67,18 +68,16 @@ forge_sf$certification <-
   )
 
 
-## Create a split dataset that has sub-data sets for each specialization; allows us to map each specialization as a separate layer
-split_df_forge <- split(forge_sf, forge_sf$Legend_Specialization)
+# ----- Create Map Helper Functions -----
 
-# ----- Create Map -----
-
-map_layer_names <- names(split_df_forge)
+map_layer_names <- levels(forge_sf$Legend_Specialization)
 
 
 ## Function that maps a distinct color to each Specialization
 pal <- colorFactor(palette = 'Set1',
-                   domain = map_layer_names)
+                   levels = map_layer_names)
 
+## Set CSS for the title of the map
 tag_map_title <- tags$style(HTML("
   .leaflet-control.map-title {
     transform: translate(-50%,20%);
@@ -93,110 +92,102 @@ tag_map_title <- tags$style(HTML("
   }
 "))
 
+## Create the HTML title
 title <- tags$div(
   tag_map_title, HTML("Establishments in Casting, Forging, and Related Sectors in the ILDMC Region")
 )
 
 
-## Function to create the popup text (with HTML styling) for the map
-generate_popup_text <- function(row) {
+## Function to create the popup text (with HTML basic styling) for the map (if we want to update styling, would need to set CSS)
+generate_popup_text <- function(data) {
     popup_text <- paste0(
-      "<h3>", row$region, "</h3>",
+      "<h3>", data$region, "</h3>",
     "<b>Company Name: </b>",
-    row$company_name,
+    data$company_name,
     "<br> <b>DUNS #: </b>",
-    row$duns_number,
+    data$duns_number,
     "<br> <b>Region: </b>",
-    row$region,
+    data$region,
     "<br> <b>Specialization: </b>",
-    row$Legend_Specialization,
+    data$Legend_Specialization,
     "<br> <b>Certification: </b>",
-    row$certification,
+    data$certification,
     "<br> <b>Subsidiary: </b>",
-    row$subsidiary,
+    data$subsidiary,
     "<br> <b>Overseas Location: </b>",
-    row$overseas,
+    data$overseas,
     "<br> <b>Number of Employees: </b>",
-    row$employee_this_sites_2020,
+    data$employee_this_sites_2020,
     "<br> <b>Sales: </b>",
-    row$sales_volume_2020,
+    data$sales_volume_2020,
     "<br> <b>Average Annual DoD Revenue: </b>",
-    row$avg_ann_dod_total_revenue,
+    data$avg_ann_dod_total_revenue,
     "<br> <b>Website: </b>",
-    row$website,
+    data$website,
     "<br> <b>Web Contact: </b>",
-    row$contact,
+    data$contact,
     "<br> <b>Phone Number: </b>",
-    row$phone_no,
+    data$phone_no,
     "<br> <b>Address: </b>",
-    row$address
+    data$address
   )
 
   popup_text
 }
 
-## Define the Leaflet map
-l <-
-  leaflet() %>%
-  addControl(title, position = "topleft", className = "map-title") %>%
-  addProviderTiles(providers$CartoDB.Positron)
+# ----- Create Map -----
 
-## Add a circle to the leaflet map defined above  for each specialization; inspiration for this strategy: https://rstudio.github.io/leaflet/showhide.html
-names(split_df_forge) %>%
-  purrr::walk(function(df) {
+map_layers <- function() {
 
-    l <<- l %>%
-      addCircles(
-        data = split_df_forge[[df]],
+  #base map
+  map <- leaflet() %>%
+    addControl(title, position = "topleft", className = "map-title") %>%
+    addProviderTiles(providers$CartoDB.Positron)
+
+  #loop through all groups and add one layer one at a time
+  for (i in map_layer_names) {
+
+    layer_data <- forge_sf %>% filter(Legend_Specialization == as.character(i))
+
+    map <- map %>%
+      addCircleMarkers(
+        data = layer_data,
+        group = i,
         label =  ~ as.character(region),
-        popup = ~ generate_popup_text(split_df_forge[[df]]),
-        group = df,
-        stroke = TRUE,
-        weight = 8,
-        radius = 3,
-        opacity = .8,
-        fillOpacity = 1,
-        color = ~ pal(Legend_Specialization),
+        popup = ~ generate_popup_text(layer_data),
         fillColor = ~ pal(Legend_Specialization),
-        labelOptions = labelOptions(noHide = F,
-                                    direction = 'auto')
+        color = "black",
+        fillOpacity = 0.8,
+        weight = 1,
+        stroke = TRUE,
+        radius = 5
       )
-  })
+  }
 
+  #create layer control
+  map %>%
+    addLayersControl(
+      overlayGroups = map_layer_names,
+      options = layersControlOptions(collapsed = FALSE),
+      position = "topleft"
+    ) %>%
+    addLegend("topright",
+              pal,
+              values = map_layer_names,
+              title = "Specialization") %>%
+    leaflet.extras::addSearchOSM()
 
-## Finally, with all of our layers added, include layer control, legend, etc.
-l <-
-  l %>%
-  addLegend("topright",
-            pal,
-            values = map_layer_names,
-            title = "Specialization") %>%
-  # Search box for companies
-  addSearchFeatures(
-    targetGroups = map_layer_names,
-    options = searchFeaturesOptions(
-      propertyLoc = "company_name",
-      zoom = 15,
-      openPopup = TRUE,
-      textPlaceholder = "Search Company Name...",
-      collapsed = FALSE
-    )
-  ) %>%
-  # Search box for address
-  leaflet.extras::addSearchOSM() %>%
-  addLayersControl(overlayGroups = map_layer_names,
-                   options = layersControlOptions(collapsed = FALSE),
-                   position = "topleft")
+}
 
 
 # ----- Export map and data -----
 
 ## Export map
-mapshot(l,
+mapshot(map_layers(),
         url = ("index.html"),
         title = "Interactive Map")
+
 # notes
-# select all button and unselect all in the box
 # source
 # https://stackoverflow.com/questions/51397728/invalid-utf-8-error-when-saving-leaflet-widget-in-r
 # https://rdrr.io/cran/tmap/man/tm_symbols.html
