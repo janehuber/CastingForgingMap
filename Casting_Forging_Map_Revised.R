@@ -153,9 +153,11 @@ names(split_df_forge) %>%
         group = df,
         stroke = TRUE,
         weight = 8,
+        radius = 3,
+        opacity = .8,
         fillOpacity = 1,
         color = ~ pal(Legend_Specialization),
-        fillColor = ~ pal(split_df_forge[[df]]$Legend_Specialization),
+        fillColor = ~ pal(Legend_Specialization),
         labelOptions = labelOptions(noHide = F,
                                     direction = 'auto')
       )
