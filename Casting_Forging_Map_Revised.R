@@ -8,6 +8,8 @@ library(leaflet.extras)
 library(RColorBrewer)
 library(mapview)
 library(leaflet.providers)
+library(htmlwidgets)
+library(htmltools)
 
 ## Set options, remove scientific notation, other options
 options(scipen = 999, stringsAsFactors = FALSE)
@@ -77,6 +79,11 @@ map_layer_names <- names(split_df_forge)
 pal <- colorFactor(palette = 'Set1',
                    domain = map_layer_names)
 
+rr <- tags$div(
+  HTML('<h3> Establishments in Casting, Forging, and Related Sectors in the ILDMC Region </h3>')
+)
+
+
 ## Function to create the popup text (with HTML styling) for the map
 generate_popup_text <- function(row) {
     popup_text <- paste0(
@@ -118,6 +125,8 @@ generate_popup_text <- function(row) {
 l <-
   leaflet() %>%
   addProviderTiles(providers$CartoDB.Positron)
+  addProviderTiles(providers$CartoDB.Positron) %>%
+  addControl(rr, position = "topleft")
 
 ## Add a circle to the leaflet map defined above  for each specialization; inspiration for this strategy: https://rstudio.github.io/leaflet/showhide.html
 names(split_df_forge) %>%
