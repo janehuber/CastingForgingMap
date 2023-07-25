@@ -126,7 +126,7 @@ names(split_df_forge) %>%
     l <<- l %>%
       addCircles(
         data = split_df_forge[[df]],
-        label =  ~ as.character(physical_city),
+        label =  ~ as.character(region),
         popup = ~ generate_popup_text(split_df_forge[[df]]),
         group = df,
         stroke = TRUE,
