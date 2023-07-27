@@ -122,11 +122,13 @@ generate_popup_text <- function(data) {
     data$sales_volume_2020,
     "<br> <b>Average Annual DoD Revenue: </b>",
     data$avg_ann_dod_total_revenue,
-    "<br> <b>Website: </b>",
+    "<br> <b>Website: </b><div style='overflow-wrap:anywhere;'>",
     data$website,
-    "<br> <b>Web Contact: </b>",
+    "</div>",
+    "<b>Web Contact: </b><div style='overflow-wrap:anywhere;'>",
     data$contact,
-    "<br> <b>Phone Number: </b>",
+    "</div>",
+    "<b>Phone Number: </b>",
     data$phone_no,
     "<br> <b>Address: </b>",
     data$address
@@ -139,12 +141,12 @@ generate_popup_text <- function(data) {
 
 map_layers <- function() {
 
+  opacity <- 0.8
+
   #base map
   map <- leaflet() %>%
     addControl(title, position = "topleft", className = "map-title") %>%
     addProviderTiles(providers$CartoDB.Positron)
-
-  opacity <- 0.8
 
   #loop through all groups and add one layer one at a time
   for (i in map_layer_names) {
